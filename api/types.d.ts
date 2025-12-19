@@ -8,12 +8,14 @@ import { EventHandler, ApiRouteHandler, ApiResponse, MotiaStream, CronHandler } 
 
 declare module 'motia' {
   interface FlowContextStateStreams {
-    
+    'metrics': MotiaStream<{ id: string; cpu: number; memory: number; disk: number; timestamp: string }>
   }
 
   interface Handlers {
-    'ProcessGreeting': EventHandler<{ timestamp: string; appName: string; greetingPrefix: string; requestId: string }, never>
-    'HelloAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string; status: string; appName: string }>, { topic: 'process-greeting'; data: { timestamp: string; appName: string; greetingPrefix: string; requestId: string } }>
+    'PushMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, never>
+    'FetchMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { metrics: Array<{ id: string; cpu: number; memory: number; disk: number; timestamp: string }> }>, never>
+    'RegisterAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string; userId: string }> | ApiResponse<400, { error: string }>, never>
+    'LoginAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, never>
   }
     
 }

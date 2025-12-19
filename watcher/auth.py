@@ -1,6 +1,6 @@
 import getpass
 import requests
-from config import save_config, load_config, get_endpoint
+from config import save_config, load_config, get_endpoint, get_token
 
 def login():
     print("Login to Green Servers")
@@ -59,7 +59,7 @@ def logout():
 def validate(func):
     """Decorator to validate login before executing the function."""
     def wrapper(*args, **kwargs):
-        token = load_config().get("token")
+        token = get_token()
         if not token:
             print("Error: No authentication token found. Please run 'login' first.")
             return

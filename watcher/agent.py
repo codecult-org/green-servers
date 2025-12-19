@@ -25,6 +25,7 @@ def push_metrics():
         return False
 
     payload = collect_metrics()
+    print("Pushing metrics:", payload)
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
@@ -52,16 +53,11 @@ def push_metrics():
         print("Push failed:", e)
         # Return True to continue loop even if network fails, 
         # but False if auth fails (handled above)
-        return True 
+        return True
 
 @validate
 def start_agent():
     print("Green Servers Python Agent started")
-    
-    # Check auth once before starting loop
-    if not get_token():
-        print("Error: Not logged in. Please run the login command.")
-        return
 
     while True:
         success = push_metrics()

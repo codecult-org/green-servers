@@ -12,5 +12,18 @@
         "sourceHandlePosition": "right"
       }
     }
+  },
+  {
+    "id": "green-server-flow",
+    "config": {
+      "src/auth/login.step.ts": {
+        "x": 11,
+        "y": 0
+      },
+      "src/auth/register.step.ts": {
+        "x": 0,
+        "y": 203
+      }
+    }
   }
 ]
