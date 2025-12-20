@@ -22,7 +22,7 @@ def push_metrics():
     payload = collect_metrics()
     headers = {
         "Content-Type": "application/json",
-        "x-api-key": API_KEY
+        "Authorization": API_KEY
     }
 
     try:

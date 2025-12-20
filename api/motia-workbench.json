@@ -16,13 +16,21 @@
   {
     "id": "green-server-flow",
     "config": {
-      "src/auth/login.step.ts": {
-        "x": 11,
-        "y": 0
+      "src/auth/watcher-login.step.ts": {
+        "x": 0,
+        "y": 406
       },
       "src/auth/register.step.ts": {
         "x": 0,
         "y": 203
+      },
+      "src/auth/login.step.ts": {
+        "x": 11,
+        "y": 0
+      },
+      "src/events/watcher-login-event.step.ts": {
+        "x": 217,
+        "y": 24
       }
     }
   }

@@ -1,22 +1,22 @@
 import type { ApiRouteConfig, Handlers } from "motia";
 import { createClient } from "@supabase/supabase-js";
-// import { logInSchema } from "../../types/user.ts";
 import { z } from "zod";
 
-export const logInSchema = z.object({
+export const watcherLogInSchema = z.object({
   email: z.string().email(),
+  hostname: z.string().min(3),
   password: z.string().min(6),
 });
 
 export const config: ApiRouteConfig = {
-  name: "LoginAPI",
+  name: "WatcherLoginAPI",
   type: "api",
-  path: "/login",
+  path: "/watcher-login",
   method: "POST",
-  description: "Login user",
+  description: "Login watcher user",
   flows: ["green-server-flow"],
-  emits: [],
-  bodySchema: logInSchema,
+  emits: ["watcher.login.attempt"],
+  bodySchema: watcherLogInSchema,
   responseSchema: {
     200: z.object({
       message: z.string(),
@@ -31,9 +31,12 @@ export const config: ApiRouteConfig = {
   },
 };
 
-export const handler: Handlers["LoginAPI"] = async (req, { state, logger }) => {
+export const handler: Handlers["WatcherLoginAPI"] = async (
+  req,
+  { state, logger, emit }
+) => {
   const body = await req.body;
-  const result = logInSchema.safeParse(body);
+  const result = watcherLogInSchema.safeParse(body);
 
   if (!result.success) {
     return {
@@ -42,7 +45,7 @@ export const handler: Handlers["LoginAPI"] = async (req, { state, logger }) => {
     };
   }
 
-  const { email, password } = result.data;
+  const { email, hostname, password } = result.data;
   const supabase = createClient(
     process.env.SUPABASE_URL || "",
     process.env.SUPABASE_SERVICE_ROLE_KEY || ""
@@ -53,13 +56,24 @@ export const handler: Handlers["LoginAPI"] = async (req, { state, logger }) => {
   });
 
   if (error || !data.session) {
-    logger.warn("Login failed", { email, error });
+    logger.warn("Watcher login failed", { email, error });
     return {
       status: 401,
       body: { error: "Invalid credentials" },
     };
   }
 
+  await emit({
+    topic: "watcher.login.attempt",
+    data: {
+      email,
+      hostname,
+      success: true,
+      timestamp: new Date().toISOString(),
+    },
+  });
+
+  logger.info("Watcher login successful", { email });
   return {
     status: 200,
     body: {
