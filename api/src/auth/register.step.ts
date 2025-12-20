@@ -1,5 +1,11 @@
 import type { ApiRouteConfig, Handlers } from 'motia';
+import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+
+const registerSchema = z.object({
+  username: z.string().min(3),
+  password: z.string().min(6)
+});
 
 export const config: ApiRouteConfig = {
   name: 'RegisterAPI',
@@ -7,6 +13,7 @@ export const config: ApiRouteConfig = {
   path: '/register',
   method: 'POST',
   description: 'Register a new user',
+  bodySchema: registerSchema,
   flows: ["green-server-flow"],
   emits: ["fetch-metrics"],
   responseSchema: {
@@ -19,11 +26,6 @@ export const config: ApiRouteConfig = {
     })
   }
 };
-
-const registerSchema = z.object({
-  username: z.string().min(3),
-  password: z.string().min(6)
-});
 
 export const handler: Handlers['RegisterAPI'] = async (req, { state, logger }) => {
   const body = await req.json();

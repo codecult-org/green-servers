@@ -3,7 +3,7 @@ from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".green-servers"
 CONFIG_FILE = CONFIG_DIR / "config.json"
-PUSH_API_ENDPOINT = "https://api.green-servers.com"
+PUSH_API_ENDPOINT = "http://localhost:3000"  # Default endpoint
 
 DEFAULT_CONFIG = {
     "endpoint": PUSH_API_ENDPOINT,
@@ -39,4 +39,4 @@ def get_token():
 def get_endpoint():
     """Retrieve the API endpoint from config."""
     config = load_config()
-    return config.get("endpoint", "http://localhost:8000") # Default fallback
+    return config.get("endpoint", "http://localhost:3000") # Default fallback

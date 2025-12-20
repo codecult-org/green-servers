@@ -15,14 +15,13 @@ def collect_metrics():
         "memory": psutil.virtual_memory().percent,
         "disk": psutil.disk_usage("/").percent,
         "uptime": int(time.time() - psutil.boot_time()),
-        "timestamp": int(time.time() * 1000)
     }
 
 def push_metrics():
     payload = collect_metrics()
     headers = {
         "Content-Type": "application/json",
-        "Authorization": API_KEY
+        "Authorization": f"Bearer {API_KEY}"
     }
 
     try:

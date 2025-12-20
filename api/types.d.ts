@@ -8,16 +8,16 @@ import { EventHandler, ApiRouteHandler, ApiResponse, MotiaStream, CronHandler } 
 
 declare module 'motia' {
   interface FlowContextStateStreams {
-    'metrics': MotiaStream<{ id: string; cpu: number; memory: number; disk: number; timestamp: string }>
+    
   }
 
   interface Handlers {
-    'PushMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, never>
-    'FetchMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { metrics: Array<{ id: string; cpu: number; memory: number; disk: number; timestamp: string }> }>, never>
-    'WatcherLoginAPI': ApiRouteHandler<{ email: string; hostname: string; password: string }, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, { topic: 'watcher.login.attempt'; data: { email: string; hostname: string; success: boolean; timestamp?: string } }>
-    'RegisterAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { message: string; userId: string }> | ApiResponse<400, { error: string }>, never>
+    'WatcherLoginAttemptEvent': EventHandler<{ id: string; hostname: string; success: boolean; timestamp?: string }, never>
+    'WatcherLoginAPI': ApiRouteHandler<{ email: string; hostname: string; password: string }, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, { topic: 'watcher.login.attempt'; data: { id: string; hostname: string; success: boolean; timestamp?: string } }>
+    'RegisterAPI': ApiRouteHandler<{ username: string; password: string }, ApiResponse<200, { message: string; userId: string }> | ApiResponse<400, { error: string }>, never>
     'LoginAPI': ApiRouteHandler<{ email: string; password: string }, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, never>
-    'WatcherLoginAttemptEvent': EventHandler<{ email: string; hostname: string; success: boolean; timestamp?: string }, never>
+    'PushMetricsAPI': ApiRouteHandler<{ hostname: string; cpu: number; memory: number; disk: number; uptime: number }, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, never>
+    'FetchMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { metrics: Array<{ id: string; cpu: number; memory: number; disk: number; timestamp: string }> }>, never>
   }
     
 }

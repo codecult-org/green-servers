@@ -1,76 +1,119 @@
-import type { ApiRouteConfig, Handlers } from 'motia';
-import { z } from 'zod';
+import type { ApiRouteConfig, Handlers } from "motia";
+import { auth } from "../middlewares/auth.middleware";
+import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
+
+const pushMetricInputSchema = z.object({
+  hostname: z.string().min(3),
+  cpu: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+  uptime: z.number(),
+});
 
 export const config: ApiRouteConfig = {
-  name: 'PushMetricsAPI',
-  type: 'api',
-  path: '/push_metrics',
-  method: 'POST',
-  description: 'Push server metrics',
+  name: "PushMetricsAPI",
+  type: "api",
+  path: "/push_metrics",
+  method: "POST",
+  description: "Push server metrics",
+  middleware: [auth({ required: true })],
+  bodySchema: pushMetricInputSchema,
   emits: [],
   responseSchema: {
     200: z.object({
-      message: z.string()
+      message: z.string(),
     }),
     400: z.object({
-      error: z.string()
-    })
-  }
+      error: z.string(),
+    }),
+  },
 };
 
 const pushMetricsSchema = z.object({
   cpu: z.number(),
   memory: z.number(),
-  disk: z.number()
+  disk: z.number(),
 });
 
-export const handler: Handlers['PushMetricsAPI'] = async (req, { streams, logger }) => {
+export const handler: Handlers["PushMetricsAPI"] = async (
+  req,
+  { state, logger }
+) => {
   const body = await req.json();
   const result = pushMetricsSchema.safeParse(body);
 
   if (!result.success) {
     return {
       status: 400,
-      body: { error: 'Invalid input' }
+      body: { error: "Invalid input" },
     };
   }
 
-  const { cpu, memory, disk } = result.data;
-  const timestamp = new Date().toISOString();
-  const id = Date.now().toString();
+  const { hostname, cpu, memory, disk, uptime } = result.data;
+  const authToken = (req.headers["authorization"] ??
+    req.headers["Authorization"]) as string;
+  const [, token] = authToken.split(" ");
+  const currentUser = state.get("user", token);
 
-  const metric = {
-    id,
-    cpu,
-    memory,
-    disk,
-    timestamp
-  };
-
-  const metricsStream = streams.metrics;
-  const groupId = 'server-1'; // Assuming single server for now
-
-  // Add new metric
-  await metricsStream.set(groupId, id, metric);
-
-  // Maintain last 20 records
-  const allMetrics = await metricsStream.getGroup(groupId);
-  if (allMetrics.length > 20) {
-    // Sort by timestamp
-    const sortedMetrics = allMetrics.sort((a: any, b: any) => a.timestamp.localeCompare(b.timestamp));
-    const toDelete = sortedMetrics.slice(0, allMetrics.length - 20);
-    
-    for (const item of toDelete) {
-      await metricsStream.delete(groupId, item.id);
-    }
+  if (!currentUser) {
+    return {
+      status: 401,
+      body: { error: "Unauthorized" },
+    };
   }
 
-  logger.info('Metrics pushed', { id });
+  const supabase = createClient(
+    process.env.SUPABASE_URL || "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  );
+
+  const { data: serverData, error: idError } = await supabase
+    .from("servers")
+    .select("id")
+    .eq("userId", currentUser.userId)
+    .eq("server_name", hostname)
+    .maybeSingle();
+
+  if (idError || !serverData  || !serverData.id) {
+    logger.error("Server not found for user", {
+      userId: currentUser.userId,
+      hostname,
+    });
+    return {
+      status: 400,
+      body: { error: "Server not found" },
+    };
+  }
+
+  const serverId = serverData.id;
+
+  const { data: insertData, error: insertError } = await supabase
+    .from("server_metrics")
+    .insert([
+      {
+        serverId: serverId,
+        cpu,
+        memory,
+        disk,
+        uptime,
+      },
+    ]);
+
+  if (insertError) {
+    logger.error("Error inserting metrics", { insertError });
+    return {
+      status: 500,
+      body: { error: "Failed to store metrics" },
+    };
+  }
+
+  logger.info("Metrics pushed", { serverId, cpu, memory, disk, uptime });
 
   return {
     status: 200,
     body: {
-      message: 'Metrics received'
-    }
+      message: "Metrics received",
+    },
   };
 };

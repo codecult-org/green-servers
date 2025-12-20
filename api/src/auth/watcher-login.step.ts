@@ -63,11 +63,17 @@ export const handler: Handlers["WatcherLoginAPI"] = async (
     };
   }
 
+  const { data: decoded, error: fetchUserError } = await supabase.auth.getUser(data.session.access_token);
+
+  if (fetchUserError || !decoded.user) {
+    logger.error("Bearer token invalid", { fetchUserError });
+  }
+
   await emit({
     topic: "watcher.login.attempt",
     data: {
-      email,
-      hostname,
+      id: decoded.user.id,
+      hostname:hostname,
       success: true,
       timestamp: new Date().toISOString(),
     },

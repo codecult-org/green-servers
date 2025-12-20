@@ -1,4 +1,5 @@
 import getpass
+import socket
 import requests
 from config import save_config, load_config, get_endpoint, get_token
 
@@ -7,18 +8,18 @@ def login():
     
     endpoint = get_endpoint()
     
-    username = input("Username/Email: ")
+    email = input("Username/Email: ")
     password = getpass.getpass("Password: ")
 
     # Assuming standard JWT auth endpoint
-    login_url = f"{endpoint}/api/auth/login"
+    login_url = f"{endpoint}/watcher-login"
     
     print(f"Authenticating with {login_url}...")
 
     try:
         response = requests.post(
             login_url, 
-            json={"username": username, "password": password}, 
+            json={"email": email, "password": password, "hostname": socket.gethostname()}, 
             timeout=10
         )
         response.raise_for_status()

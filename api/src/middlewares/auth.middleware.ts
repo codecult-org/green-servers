@@ -44,7 +44,8 @@ export const auth = ({ required }: { required: boolean }): ApiMiddleware => {
       ctx.logger.info("Bearer token successfully validated", {
         token: decoded,
       });
-      ctx.state.set("user", decoded.user.id, {
+      ctx.state.set("user", token, {
+        userId: decoded.user.id,
         email: decoded.user.email,
         user_metadata: decoded.user.user_metadata,
       });
