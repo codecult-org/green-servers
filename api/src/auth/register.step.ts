@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 const registerSchema = z.object({
-  username: z.string().min(3),
+  email: z.string().min(3),
   password: z.string().min(6)
 });
 
@@ -28,7 +28,7 @@ export const config: ApiRouteConfig = {
 };
 
 export const handler: Handlers['RegisterAPI'] = async (req, { state, logger }) => {
-  const body = await req.json();
+  const body = await req.body;
   const result = registerSchema.safeParse(body);
 
   if (!result.success) {
@@ -38,28 +38,33 @@ export const handler: Handlers['RegisterAPI'] = async (req, { state, logger }) =
     };
   }
 
-  const { username, password } = result.data;
+  const { email, password } = result.data;
   
-  // Check if user exists
-  const existingUser = await state.get('users', username);
-  if (existingUser) {
+  const supabase = createClient(
+    process.env.SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  if (error || !data.user) {
+    logger.error('User registration failed', { email, error });
     return {
       status: 400,
-      body: { error: 'User already exists' }
+      body: { error: 'Registration failed' }
     };
   }
 
-  // Store user
-  // In a real app, hash the password!
-  await state.set('users', username, { username, password, createdAt: new Date().toISOString() });
-
-  logger.info('User registered', { username });
+  logger.info('User registered', data);
 
   return {
     status: 200,
     body: {
       message: 'User registered successfully',
-      userId: username
+      userId: data.user.id
     }
   };
 };
