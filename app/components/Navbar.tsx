@@ -92,23 +92,32 @@ function NavContent() {
           </motion.button>
         </div>
       ) : (
-        <Link href="/login">
-          <motion.button
-            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all duration-300 text-sm font-medium"
-            whileHover={{
-              scale: 1.05,
-              backgroundColor: "rgba(255, 255, 255, 0.15)",
-            }}
-            whileTap={{ scale: 0.95 }}
-            transition={{
-              type: "spring" as const,
-              stiffness: 400,
-              damping: 25,
-            }}
-          >
-            Login
-          </motion.button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/register">
+            <motion.button
+              className="px-4 py-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 transition-all duration-300 text-sm font-medium"
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: "rgba(34, 197, 94, 0.2)",
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Register
+            </motion.button>
+          </Link>
+          <Link href="/login">
+            <motion.button
+              className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all duration-300 text-sm font-medium"
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+              }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Login
+            </motion.button>
+          </Link>
+        </div>
       )}
     </div>
   );

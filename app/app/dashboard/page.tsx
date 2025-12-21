@@ -7,6 +7,8 @@ import { PerformanceChart } from "@/components/performance-chart";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Select from "react-select";
+import Image from "next/image";
 
 // Animation variants for staggered children
 const containerVariants = {
@@ -92,9 +94,60 @@ interface SystemMetrics {
   };
 }
 
+// Custom styles for React Select
+const customStyles = {
+  control: (provided: any, state: any) => ({
+    ...provided,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: state.isFocused
+      ? "rgb(6, 182, 212)"
+      : "rgba(255, 255, 255, 0.1)",
+    color: "white",
+    boxShadow: state.isFocused ? "0 0 0 1px rgb(6, 182, 212)" : "none",
+    "&:hover": {
+      borderColor: "rgba(255, 255, 255, 0.2)",
+    },
+  }),
+  menu: (provided: any) => ({
+    ...provided,
+    backgroundColor: "#0a0a0a",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+  }),
+  option: (provided: any, state: any) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "rgb(6, 182, 212)"
+      : state.isFocused
+      ? "rgba(6, 182, 212, 0.1)"
+      : "transparent",
+    color: state.isSelected ? "white" : "white",
+    cursor: "pointer",
+    ":active": {
+      ...provided[":active"],
+      backgroundColor: "rgb(6, 182, 212)",
+    },
+  }),
+  singleValue: (provided: any) => ({
+    ...provided,
+    color: "white",
+  }),
+  input: (provided: any) => ({
+    ...provided,
+    color: "white",
+  }),
+};
+
+interface Server {
+  id: number;
+  server_name: string;
+}
+
 export default function PerformanceDashboard() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [servers, setServers] = useState<Server[]>([]);
+  const [selectedServerId, setSelectedServerId] = useState<number | null>(null);
+  const [serversLoading, setServersLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -134,13 +187,49 @@ export default function PerformanceDashboard() {
     "cpu" | "memory" | "disk"
   >("cpu");
 
+  // Fetch servers on mount
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/list-servers`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const serverList = response.data.servers;
+        if (serverList.length === 0) {
+          router.push("/get-started");
+          return;
+        }
+        setServers(serverList);
+        if (serverList.length > 0 && !selectedServerId) {
+          setSelectedServerId(serverList[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch servers:", error);
+      } finally {
+        setServersLoading(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchServers();
+    }
+  }, [isAuthenticated]);
+
   // Fetch real data from API
   useEffect(() => {
+    if (!selectedServerId || serversLoading) return;
+
     const fetchMetrics = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:3000/fetch_metrics/7",
+          `${process.env.NEXT_PUBLIC_API_URL}/fetch_metrics/${selectedServerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -180,12 +269,23 @@ export default function PerformanceDashboard() {
     const interval = setInterval(fetchMetrics, 12000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedServerId]);
 
-  if (isLoading) {
+  if (isLoading || serversLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20 animate-pulse">
+            <Image
+              src="/Green Server1.png"
+              alt="Loading..."
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+          </div>
+          <p className="text-white/40 text-sm">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -360,6 +460,39 @@ export default function PerformanceDashboard() {
         animate="visible"
       >
         <motion.div className="px-3 py-2 mb-2" variants={itemVariants}>
+          <div className="mb-4">
+            <label className="text-s text-gray-400 mb-1 block">
+              Select Server
+            </label>
+            <Select
+              value={
+                selectedServerId
+                  ? {
+                      value: selectedServerId,
+                      label:
+                        servers.find((s) => s.id === selectedServerId)
+                          ?.server_name || "",
+                    }
+                  : null
+              }
+              onChange={(option: any) => {
+                if (option) setSelectedServerId(option.value);
+              }}
+              options={servers.map((server) => ({
+                value: server.id,
+                label: server.server_name,
+              }))}
+              styles={customStyles}
+              className="text-sm"
+              theme={(theme: any) => ({
+                ...theme,
+                colors: {
+                  ...theme.colors,
+                  primary: "rgb(6, 182, 212)",
+                },
+              })}
+            />
+          </div>
           <h2 className="text-sm font-medium text-foreground">Performance</h2>
         </motion.div>
 
