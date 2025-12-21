@@ -1,5 +1,4 @@
 import { ApiMiddleware, ApiResponse } from "motia";
-import { supabase } from "../lib/supabase";
 
 export const auth = ({ required }: { required: boolean }): ApiMiddleware => {
   const authMiddleware: ApiMiddleware = async (
@@ -28,38 +27,7 @@ export const auth = ({ required }: { required: boolean }): ApiMiddleware => {
 
     ctx.logger.info("Authorization header found in request");
 
-    const [, token] = authToken.split(" ");
-    try {
-      const { data: decoded, error } = await supabase.auth.getUser(token);
-
-      if (error || !decoded.user) {
-        ctx.logger.error("Bearer token invalid", { error });
-      }
-
-      ctx.logger.info("Bearer token successfully validated", {
-        token: decoded,
-      });
-      ctx.state.set("user", token, {
-        userId: decoded.user.id,
-        email: decoded.user.email,
-        user_metadata: decoded.user.user_metadata,
-      });
-      return next();
-    } catch (err: any) {
-      ctx.logger.error("Bearer token error", { err });
-
-      if (err.name === "TokenExpiredError") {
-        return {
-          status: 401,
-          body: { error: "Unauthorized" },
-        };
-      }
-      return {
-        status: 401,
-        body: { error: "Unauthorized" },
-      };
-    }
+    return next();
   };
-
   return authMiddleware;
 };

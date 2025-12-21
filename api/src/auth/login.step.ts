@@ -56,6 +56,25 @@ export const handler: Handlers["LoginAPI"] = async (req, { state, logger }) => {
     };
   }
 
+  const { data: userData, error: userError } = await supabase.auth.getUser(
+    data.session.access_token
+  );
+  
+  if (userError || !userData.user) {
+    return {
+      status: 401,
+      body: { error: "User not found" },
+    };
+  }
+  
+  await state.set("user", data.session.access_token, {
+    userId: userData.user.id,
+    email: userData.user.email,
+    user_metadata: userData.user.user_metadata,
+  });
+
+  logger.info("User logged in successfully", { email: userData.user.email });
+
   return {
     status: 200,
     body: {
