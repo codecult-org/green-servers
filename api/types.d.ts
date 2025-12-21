@@ -12,10 +12,12 @@ declare module 'motia' {
   }
 
   interface Handlers {
-    'PushMetricsAPI': ApiRouteHandler<{ hostname: string; cpu: number; memory: number; disk: number; uptime: number }, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, never>
+    'SetServerThresholdAPI': ApiRouteHandler<{ cpuThreshold: number; memoryThreshold: number; diskThreshold: number }, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, never>
+    'PushMetricsAPI': ApiRouteHandler<{ hostname: string; cpu: number; memory: number; disk: number; uptime: number }, ApiResponse<200, { message: string }> | ApiResponse<400, { error: string }>, { topic: 'metric.pushed'; data: { userId: string; hostname: string; authToken: string; currentCpu: number; currentMemory: number; currentDisk: number } }>
     'ListServersAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { servers: Array<{ id: string; server_name: string }> }> | ApiResponse<401, { error: string }>, never>
     'FetchMetricsAPI': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { metrics: { cpu: number; memory: number; disk: number; timestamp: string } }> | ApiResponse<404, { error: string }>, never>
     'WatcherLoginAttemptEvent': EventHandler<{ id: string; hostname: string; success: boolean; timestamp?: string }, never>
+    'MonitorMetricsEvent': EventHandler<{ userId: string; hostname: string; authToken: string; currentCpu: number; currentMemory: number; currentDisk: number }, never>
     'WatcherLoginAPI': ApiRouteHandler<{ email: string; hostname: string; password: string }, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, { topic: 'watcher.login.attempt'; data: { id: string; hostname: string; success: boolean; timestamp?: string } }>
     'RegisterAPI': ApiRouteHandler<{ email: string; password: string }, ApiResponse<200, { message: string; userId: string }> | ApiResponse<400, { error: string }>, never>
     'LoginAPI': ApiRouteHandler<{ email: string; password: string }, ApiResponse<200, { message: string; token: string }> | ApiResponse<400, { error: string }> | ApiResponse<401, { error: string }>, never>

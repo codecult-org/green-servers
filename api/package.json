@@ -23,6 +23,7 @@
     "@motiadev/plugin-states": "^0.17.9-beta.191",
     "@supabase/supabase-js": "^2.89.0",
     "motia": "^0.17.9-beta.191",
+    "resend": "^6.6.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

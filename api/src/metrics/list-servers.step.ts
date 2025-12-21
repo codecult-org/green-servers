@@ -11,6 +11,7 @@ export const config: ApiRouteConfig = {
   middleware: [auth({ required: true })],
   description: 'List all servers for the authenticated user',
   emits: [],
+  flows: ['green-server-flow'],
   responseSchema: {
     200: z.object({
       servers: z.array(
