@@ -6,20 +6,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Loader2, Lock, Mail, AlertCircle } from "lucide-react";
+import { Loader2, Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 
-const loginSchema = z.object({
+const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
@@ -29,27 +29,35 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(
+      // 1. Register User
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/register`, data);
+
+      // 2. Auto Login
+      const loginResponse = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/login`,
         data
       );
 
-      if (response.data.token) {
-        login(response.data.token);
+      if (loginResponse.data.token) {
+        login(loginResponse.data.token);
+      } else {
+        // Fallback if token isn't in standard place, though requirement implies same payload works
+        router.push("/login");
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(
-          err.response?.data?.message || "Login failed. Please try again."
+          err.response?.data?.message ||
+            "Registration failed. Please try again."
         );
       } else {
         setError("An unexpected error occurred.");
@@ -85,10 +93,10 @@ export default function LoginPage() {
               />
             </div>
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-              Welcome Back
+              Create Account
             </h1>
             <p className="text-white/40 text-sm mt-2">
-              Sign in to manage your green servers
+              Start monitoring your servers today
             </p>
           </div>
 
@@ -127,7 +135,7 @@ export default function LoginPage() {
                 <input
                   {...register("password")}
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition-all"
                 />
               </div>
@@ -160,22 +168,24 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
-                "Sign In"
+                <>
+                  Sign Up <ArrowRight size={18} />
+                </>
               )}
             </motion.button>
           </form>
 
           <div className="mt-8 text-center">
             <p className="text-sm text-white/40">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="text-green-500 hover:text-green-400 font-medium transition-colors hover:underline"
               >
-                Sign Up
+                Sign In
               </Link>
             </p>
           </div>

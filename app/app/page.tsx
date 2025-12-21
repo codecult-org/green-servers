@@ -14,9 +14,11 @@ import {
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -93,6 +95,8 @@ export default function LandingPage() {
                 className="px-8 py-3 bg-background border border-border rounded-lg font-medium hover:bg-accent transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                // on clicking on this button redirect to /get-started
+                onClick={() => router.push("/get-started")}
               >
                 View Documentation
               </motion.button>
