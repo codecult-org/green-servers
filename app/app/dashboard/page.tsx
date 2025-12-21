@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { PerformanceChart } from "@/components/performance-chart";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 // Animation variants for staggered children
 const containerVariants = {
@@ -90,6 +93,15 @@ interface SystemMetrics {
 }
 
 export default function PerformanceDashboard() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu: {
       usage: 8,
@@ -122,60 +134,61 @@ export default function PerformanceDashboard() {
     "cpu" | "memory" | "disk"
   >("cpu");
 
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Initialize with random data only on client side to avoid hydration mismatch
+  // Fetch real data from API
   useEffect(() => {
-    if (!isInitialized) {
-      setCpuHistory(
-        Array(60)
-          .fill(0)
-          .map(() => Math.random() * 15 + 5)
-      );
-      setMemoryHistory(
-        Array(60)
-          .fill(0)
-          .map(() => Math.random() * 20 + 60)
-      );
-      setDiskHistory(
-        Array(60)
-          .fill(0)
-          .map(() => Math.random() * 5)
-      );
-      setIsInitialized(true);
-    }
-  }, [isInitialized]);
+    const fetchMetrics = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:3000/fetch_metrics/7",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate real-time data updates
-      const newCpuUsage = Math.random() * 15 + 5;
-      const newMemoryPercentage = Math.random() * 20 + 60;
-      const newDiskUsage = Math.random() * 5;
+        const { cpu, memory, disk } = response.data.metrics;
 
-      setCpuHistory((prev) => [...prev.slice(1), newCpuUsage]);
-      setMemoryHistory((prev) => [...prev.slice(1), newMemoryPercentage]);
-      setDiskHistory((prev) => [...prev.slice(1), newDiskUsage]);
+        setCpuHistory((prev) => [...prev.slice(1), cpu]);
+        setMemoryHistory((prev) => [...prev.slice(1), memory]);
+        setDiskHistory((prev) => [...prev.slice(1), disk]);
 
-      setMetrics((prev) => ({
-        ...prev,
-        cpu: {
-          ...prev.cpu,
-          usage: Math.round(newCpuUsage),
-        },
-        memory: {
-          ...prev.memory,
-          percentage: Math.round(newMemoryPercentage),
-        },
-        disk: {
-          ...prev.disk,
-          usage: Math.round(newDiskUsage),
-        },
-      }));
-    }, 1000);
+        setMetrics((prev) => ({
+          ...prev,
+          cpu: {
+            ...prev.cpu,
+            usage: Math.round(cpu),
+          },
+          memory: {
+            ...prev.memory,
+            percentage: Math.round(memory),
+          },
+          disk: {
+            ...prev.disk,
+            usage: Math.round(disk),
+          },
+        }));
+      } catch (error) {
+        console.error("Failed to fetch metrics:", error);
+      }
+    };
+
+    // Initial fetch
+    fetchMetrics();
+
+    const interval = setInterval(fetchMetrics, 12000);
 
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const getCurrentHistory = () => {
     switch (selectedMetric) {

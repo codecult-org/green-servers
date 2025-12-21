@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GlassNavbar } from "@/components/Navbar";
+import { AuthProvider } from "@/context/AuthContext";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -37,11 +38,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <GlassNavbar />
-      <html lang="en">
-        <body className={`font-sans antialiased`}>{children}</body>
-      </html>
-    </>
+    <html lang="en">
+      <body className={`font-sans antialiased`}>
+        <AuthProvider>
+          <GlassNavbar />
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
   );
 }
