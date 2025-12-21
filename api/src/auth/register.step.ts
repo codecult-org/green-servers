@@ -15,7 +15,7 @@ export const config: ApiRouteConfig = {
   description: 'Register a new user',
   bodySchema: registerSchema,
   flows: ["green-server-flow"],
-  emits: ["fetch-metrics"],
+  emits: [],
   responseSchema: {
     200: z.object({
       message: z.string(),

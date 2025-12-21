@@ -11,6 +11,7 @@ export const config: ApiRouteConfig = {
   middleware: [auth({ required: true })],
   description: "Fetch current metrics",
   emits: [],
+  flows: ["green-server-flow"],
   responseSchema: {
     200: z.object({
       metrics: z.object({

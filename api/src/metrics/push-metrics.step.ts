@@ -19,7 +19,8 @@ export const config: ApiRouteConfig = {
   description: "Push server metrics",
   middleware: [auth({ required: true })],
   bodySchema: pushMetricInputSchema,
-  emits: [],
+  emits: ["metric.pushed"],
+  flows: ["green-server-flow"],
   responseSchema: {
     200: z.object({
       message: z.string(),
@@ -32,7 +33,7 @@ export const config: ApiRouteConfig = {
 
 export const handler: Handlers["PushMetricsAPI"] = async (
   req,
-  { state, logger }
+  { state, logger , emit}
 ) => {
   const body = await req.body;
   const result = pushMetricInputSchema.safeParse(body);
@@ -96,6 +97,17 @@ export const handler: Handlers["PushMetricsAPI"] = async (
   }
 
   logger.info("Metrics pushed", { cpu, memory, disk, uptime });
+   await emit({
+      topic: "metric.pushed",
+      data: {
+        userId: currentUser.userId,
+        hostname: hostname,
+        authToken: token,
+        currentCpu: cpu,
+        currentMemory: memory,
+        currentDisk: disk,
+      },
+    });
 
   return {
     status: 200,
