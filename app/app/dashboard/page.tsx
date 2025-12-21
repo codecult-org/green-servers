@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Select from "react-select";
 import Image from "next/image";
+import { Settings } from "lucide-react";
 
 // Animation variants for staggered children
 const containerVariants = {
@@ -634,6 +635,33 @@ export default function PerformanceDashboard() {
             </div>
             <div className="text-xs text-muted-foreground">
               {metrics.disk.usage}%
+            </div>
+          </div>
+        </motion.button>
+
+        {/* Configuration */}
+        <motion.div className="mt-6 mb-2 px-3" variants={itemVariants}>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Configuration
+          </h2>
+        </motion.div>
+
+        <motion.button
+          onClick={() => router.push("/set-alert-threshold")}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-sm transition-colors hover:bg-accent/50 group"
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, x: 4 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="w-12 h-10 bg-accent/10 rounded-sm flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+            <Settings className="w-5 h-5 text-muted-foreground group-hover:text-cyan-400 transition-colors" />
+          </div>
+          <div className="flex-1 text-left">
+            <div className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+              Alert Thresholds
+            </div>
+            <div className="text-[10px] text-muted-foreground/60">
+              Configure system alerts
             </div>
           </div>
         </motion.button>

@@ -81,7 +81,7 @@ export default function GetStartedPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-12 pt-24 font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6 pt-24 font-sans selection:bg-cyan-500/30">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial="hidden"
