@@ -3,7 +3,7 @@ from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".green-servers"
 CONFIG_FILE = CONFIG_DIR / "config.json"
-PUSH_API_ENDPOINT = "http://localhost:3000"  # Default endpoint
+PUSH_API_ENDPOINT = "https://glk6py-l2qb7b.ebjyoti-mmyrfilis1.motia.cloud"  # Default endpoint
 
 DEFAULT_CONFIG = {
     "endpoint": PUSH_API_ENDPOINT,
