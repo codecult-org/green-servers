@@ -267,7 +267,7 @@ export default function PerformanceDashboard() {
     // Initial fetch
     fetchMetrics();
 
-    const interval = setInterval(fetchMetrics, 12000);
+    const interval = setInterval(fetchMetrics, 10000);
 
     return () => clearInterval(interval);
   }, [selectedServerId]);
