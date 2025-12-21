@@ -1,5 +1,5 @@
 import { ApiMiddleware, ApiResponse } from "motia";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 
 export const auth = ({ required }: { required: boolean }): ApiMiddleware => {
   const authMiddleware: ApiMiddleware = async (
@@ -30,11 +30,6 @@ export const auth = ({ required }: { required: boolean }): ApiMiddleware => {
 
     const [, token] = authToken.split(" ");
     try {
-      const supabase = createClient(
-        process.env.SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      );
-
       const { data: decoded, error } = await supabase.auth.getUser(token);
 
       if (error || !decoded.user) {

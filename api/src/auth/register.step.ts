@@ -1,5 +1,5 @@
 import type { ApiRouteConfig, Handlers } from 'motia';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -39,11 +39,6 @@ export const handler: Handlers['RegisterAPI'] = async (req, { state, logger }) =
   }
 
   const { email, password } = result.data;
-  
-  const supabase = createClient(
-    process.env.SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  );
 
   const { data, error } = await supabase.auth.signUp({
     email: email,

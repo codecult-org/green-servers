@@ -32,14 +32,14 @@ def push_metrics():
     }
     
     # Assuming metrics endpoint
-    url = f"{endpoint}/api/metrics"
+    url = f"{endpoint}/push_metrics"
 
     try:
         r = requests.post(
             url,
             json=payload,
             headers=headers,
-            timeout=5
+            timeout=10
         )
         
         if r.status_code == 401:

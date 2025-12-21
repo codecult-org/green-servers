@@ -1,5 +1,5 @@
 import { EventConfig, Handler } from "motia";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 import { z } from "zod";
 
 export const watcherLoginEventSchema = z.object({
@@ -28,11 +28,6 @@ export const handler: Handler = async (event, { logger }) => {
   }
 
   const { id, hostname, success, timestamp } = result.data;
-
-  const supabase = createClient(
-    process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  );
 
   const { data: existingData, error } = await supabase
     .from("servers")

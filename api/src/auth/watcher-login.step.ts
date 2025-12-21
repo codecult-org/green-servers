@@ -1,5 +1,5 @@
 import type { ApiRouteConfig, Handlers } from "motia";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 import { z } from "zod";
 
 export const watcherLogInSchema = z.object({
@@ -46,10 +46,7 @@ export const handler: Handlers["WatcherLoginAPI"] = async (
   }
 
   const { email, hostname, password } = result.data;
-  const supabase = createClient(
-    process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  );
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
     password: password,

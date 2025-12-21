@@ -1,6 +1,6 @@
 import type { ApiRouteConfig, Handlers } from "motia";
 import { auth } from "../middlewares/auth.middleware";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 import { z } from "zod";
 
 const pushMetricInputSchema = z.object({
@@ -30,18 +30,12 @@ export const config: ApiRouteConfig = {
   },
 };
 
-const pushMetricsSchema = z.object({
-  cpu: z.number(),
-  memory: z.number(),
-  disk: z.number(),
-});
-
 export const handler: Handlers["PushMetricsAPI"] = async (
   req,
   { state, logger }
 ) => {
-  const body = await req.json();
-  const result = pushMetricsSchema.safeParse(body);
+  const body = await req.body;
+  const result = pushMetricInputSchema.safeParse(body);
 
   if (!result.success) {
     return {
@@ -54,8 +48,8 @@ export const handler: Handlers["PushMetricsAPI"] = async (
   const authToken = (req.headers["authorization"] ??
     req.headers["Authorization"]) as string;
   const [, token] = authToken.split(" ");
-  const currentUser = state.get("user", token);
-
+  const currentUser = await state.get("user", token);
+ 
   if (!currentUser) {
     return {
       status: 401,
@@ -63,14 +57,9 @@ export const handler: Handlers["PushMetricsAPI"] = async (
     };
   }
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  );
-
   const { data: serverData, error: idError } = await supabase
     .from("servers")
-    .select("id")
+    .select("*")
     .eq("userId", currentUser.userId)
     .eq("server_name", hostname)
     .maybeSingle();
@@ -86,17 +75,15 @@ export const handler: Handlers["PushMetricsAPI"] = async (
     };
   }
 
-  const serverId = serverData.id;
-
   const { data: insertData, error: insertError } = await supabase
     .from("server_metrics")
     .insert([
       {
-        serverId: serverId,
-        cpu,
-        memory,
-        disk,
-        uptime,
+        serverId: serverData.id,
+        cpu: cpu,
+        memory: memory,
+        disk: disk,
+        uptime: uptime,
       },
     ]);
 
@@ -108,7 +95,7 @@ export const handler: Handlers["PushMetricsAPI"] = async (
     };
   }
 
-  logger.info("Metrics pushed", { serverId, cpu, memory, disk, uptime });
+  logger.info("Metrics pushed", { cpu, memory, disk, uptime });
 
   return {
     status: 200,
