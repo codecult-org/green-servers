@@ -193,24 +193,8 @@ export default function GetStartedPage() {
             ))}
           </div>
 
-          <motion.div variants={fadeInUp} className="text-center pt-12 pb-20">
-            <p className="text-gray-500 mb-6">Waiting for incoming data...</p>
-            <div className="flex justify-center gap-2">
-              <span
-                className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"
-                style={{ animationDelay: "0s" }}
-              ></span>
-              <span
-                className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"
-                style={{ animationDelay: "0.2s" }}
-              ></span>
-              <span
-                className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"
-                style={{ animationDelay: "0.4s" }}
-              ></span>
-            </div>
-
-            <div className="mt-8">
+          <motion.div variants={fadeInUp} className="text-center pb-20">
+            <div>
               <Link
                 href="/dashboard"
                 className="text-cyan-500 hover:text-cyan-400 font-medium transition-colors hover:underline flex items-center justify-center gap-2 group/link"
